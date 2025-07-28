@@ -128,7 +128,8 @@ Use it, break it, fork it — but don’t deploy it to production and expect it 
 ## 🤝 Contributing
 
 Pull requests are **very welcome**!
-Whether it’s a bug fix, a new agent personality, or just a typo in this README — feel free to jump in.
+Whether it’s a bug fix, a new agent personality, or just a typo in this README — feel free to jump in.ù
+Thanks
 
 ---
 
