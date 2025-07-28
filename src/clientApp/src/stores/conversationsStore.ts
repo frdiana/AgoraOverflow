@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { fetchChatHistory, startNewChat, sendChatMessage } from "../services";
 
 export interface Message {
   key: string;
@@ -18,12 +19,18 @@ export interface Conversation {
 interface ConversationsState {
   conversations: Conversation[];
   currentConversationId: string | null;
-  createConversation: () => void;
+  isLoading: boolean;
+  navigationCallback?: (chatId: string) => void;
+  setNavigationCallback: (callback: (chatId: string) => void) => void;
+  createConversation: () => Promise<void>;
   deleteConversation: (id: string) => void;
   selectConversation: (id: string) => void;
+  selectConversationWithoutNavigation: (id: string) => void;
   addMessageToCurrentConversation: (message: Message) => void;
   updateConversationTitle: (id: string, title: string) => void;
   getCurrentConversation: () => Conversation | null;
+  loadConversationsFromHistory: () => Promise<void>;
+  sendMessage: (content: string) => Promise<void>;
 }
 
 // Helper function to generate a title from the first user message
@@ -37,103 +44,83 @@ const generateConversationTitle = (messages: Message[]): string => {
 };
 
 export const useConversationsStore = create<ConversationsState>((set, get) => {
-  // Initial conversations with demo data
-  const initialConversations: Conversation[] = [
-    {
-      id: "1",
-      title: "Welcome to AgoraOverflow",
-      messages: [
-        {
-          key: "1",
-          role: "assistant",
-          content:
-            "Hello! Welcome to AgoraOverflow. I'm your AI assistant. How can I help you today?",
-          timestamp: Date.now() - 120000, // 2 minutes ago
-        },
-        {
-          key: "2",
-          role: "user",
-          content: "What is AgoraOverflow?",
-          timestamp: Date.now() - 60000, // 1 minute ago
-        },
-        {
-          key: "3",
-          role: "assistant",
-          content:
-            "AgoraOverflow is an AI-powered chat platform built with React, Ant Design, and Zustand. It features multiple conversations, real-time messaging, and a clean, modern interface.",
-          timestamp: Date.now() - 30000, // 30 seconds ago
-        },
-      ],
-      createdAt: Date.now() - 180000, // 3 minutes ago
-      updatedAt: Date.now() - 30000,
-    },
-    {
-      id: "2",
-      title: "React Development Tips",
-      messages: [
-        {
-          key: "4",
-          role: "assistant",
-          content: "Hello! I can help you with React development questions.",
-          timestamp: Date.now() - 86400000, // 1 day ago
-        },
-        {
-          key: "5",
-          role: "user",
-          content: "What are the best practices for React state management?",
-          timestamp: Date.now() - 86300000,
-        },
-        {
-          key: "6",
-          role: "assistant",
-          content:
-            "Great question! For React state management, I recommend: 1) Use local state (useState) for component-specific data, 2) Use Zustand or Redux for global state, 3) Consider React Query for server state, and 4) Keep state as close to where it's used as possible.",
-          timestamp: Date.now() - 86200000,
-        },
-      ],
-      createdAt: Date.now() - 86400000,
-      updatedAt: Date.now() - 86200000,
-    },
-    {
-      id: "3",
-      title: "TypeScript Best Practices",
-      messages: [
-        {
-          key: "7",
-          role: "assistant",
-          content: "I'm here to help with TypeScript questions!",
-          timestamp: Date.now() - 172800000, // 2 days ago
-        },
-      ],
-      createdAt: Date.now() - 172800000,
-      updatedAt: Date.now() - 172800000,
-    },
-  ];
-
   return {
-    conversations: initialConversations,
-    currentConversationId: "1",
+    conversations: [],
+    currentConversationId: null,
+    isLoading: false,
+    navigationCallback: undefined,
 
-    createConversation: () => {
-      const newConversation: Conversation = {
-        id: Date.now().toString(),
-        title: "New Conversation",
-        messages: [
-          {
-            key: Date.now().toString(),
-            role: "assistant",
-            content: "Hello! How can I help you today?",
-            timestamp: Date.now(),
-          },
-        ],
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      };
+    setNavigationCallback: (callback: (chatId: string) => void) => {
+      set({ navigationCallback: callback });
+    },
 
-      set((state) => ({
-        conversations: [newConversation, ...state.conversations],
-        currentConversationId: newConversation.id,
-      }));
+    loadConversationsFromHistory: async () => {
+      set({ isLoading: true });
+      try {
+        const historyItems = await fetchChatHistory();
+
+        // Convert API response to conversations format
+        const conversations: Conversation[] = historyItems.map((item) => ({
+          id: item.conversationId,
+          title: item.conversationName,
+          messages: [
+            {
+              key: `${item.conversationId}-welcome`,
+              role: "assistant",
+              content: "Hello! How can I help you today?",
+              timestamp: Date.now(),
+            },
+          ],
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        }));
+
+        set({
+          conversations,
+          // Don't auto-select first conversation here - let the ChatPage handle URL-based selection
+          isLoading: false,
+        });
+      } catch (error) {
+        console.error("Error loading conversations from history:", error);
+        set({ isLoading: false });
+      }
+    },
+
+    createConversation: async () => {
+      try {
+        const response = await startNewChat();
+        if (response?.chatId) {
+          const newConversation: Conversation = {
+            id: response.chatId,
+            title: "New Conversation",
+            messages: [
+              {
+                key: `${response.chatId}-welcome`,
+                role: "assistant",
+                content: "Hello! How can I help you today?",
+                timestamp: Date.now(),
+              },
+            ],
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          };
+
+          set((state) => ({
+            conversations: [newConversation, ...state.conversations],
+            currentConversationId: newConversation.id,
+          }));
+
+          // Navigate to the new conversation with full path
+          const state = get();
+          if (state.navigationCallback) {
+            state.navigationCallback(`/chat/${newConversation.id}`);
+          }
+        } else {
+          console.error("Failed to start new chat - no chatId received");
+        }
+      } catch (error) {
+        console.error("Error creating new conversation:", error);
+      }
     },
 
     deleteConversation: (id: string) => {
@@ -157,6 +144,21 @@ export const useConversationsStore = create<ConversationsState>((set, get) => {
     },
 
     selectConversation: (id: string) => {
+      set({ currentConversationId: id });
+
+      // Navigate to the conversation with full path (only if not already there)
+      const state = get();
+      if (state.navigationCallback) {
+        // Don't navigate if we're already on this conversation's URL
+        const currentPath = window.location.pathname;
+        const targetPath = `/chat/${id}`;
+        if (currentPath !== targetPath) {
+          state.navigationCallback(targetPath);
+        }
+      }
+    },
+
+    selectConversationWithoutNavigation: (id: string) => {
       set({ currentConversationId: id });
     },
 
@@ -196,6 +198,53 @@ export const useConversationsStore = create<ConversationsState>((set, get) => {
         state.conversations.find((c) => c.id === state.currentConversationId) ||
         null
       );
+    },
+
+    sendMessage: async (content: string) => {
+      const state = get();
+      const currentConversation = state.conversations.find(
+        (c) => c.id === state.currentConversationId
+      );
+
+      if (!currentConversation) {
+        console.error("No current conversation selected");
+        return;
+      }
+
+      // Add user message to current conversation
+      const userMessage: Message = {
+        key: Date.now().toString(),
+        role: "user",
+        content: content.trim(),
+        timestamp: Date.now(),
+      };
+
+      // Add user message to store
+      get().addMessageToCurrentConversation(userMessage);
+
+      try {
+        // Send message to API
+        const response = await sendChatMessage(
+          currentConversation.id,
+          content.trim()
+        );
+
+        if (response?.reply) {
+          // Add assistant response to conversation
+          const assistantMessage: Message = {
+            key: (Date.now() + 1).toString(),
+            role: "assistant",
+            content: response.reply,
+            timestamp: Date.now(),
+          };
+
+          get().addMessageToCurrentConversation(assistantMessage);
+        } else {
+          console.error("No reply received from API");
+        }
+      } catch (error) {
+        console.error("Error sending message:", error);
+      }
     },
   };
 });

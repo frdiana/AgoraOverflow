@@ -22,6 +22,7 @@ public static class Endpoints
 
         endpoints.MapPublicGroup()
             .MapEndpoint<StartNewChat>()
+            .MapEndpoint<GetConversationHistory>()
             .MapEndpoint<ReplyToUser>();
 
         //endpoints.MapAuthorizedGroup()

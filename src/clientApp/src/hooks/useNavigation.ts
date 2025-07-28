@@ -5,21 +5,13 @@ import { useNavigationStore } from "../stores/navigationStore";
  * This demonstrates how to use the Zustand store in components
  */
 export const useNavigation = () => {
-  const {
-    isDrawerOpen,
-    currentPage,
-    openDrawer,
-    closeDrawer,
-    toggleDrawer,
-    setCurrentPage,
-  } = useNavigationStore();
+  const { isDrawerOpen, openDrawer, closeDrawer, toggleDrawer } =
+    useNavigationStore();
 
   return {
     isDrawerOpen,
-    currentPage,
     openDrawer,
     closeDrawer,
     toggleDrawer,
-    setCurrentPage,
   };
 };

@@ -9,5 +9,15 @@ public static class ConfigureServices
     {
 
         builder.Services.AddValidatorsFromAssemblyContaining<RequestValidator>();
+        // Add this after builder creation
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll", policy =>
+            {
+                policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader();
+            });
+        });
     }
 }

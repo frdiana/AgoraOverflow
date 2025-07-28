@@ -1,26 +1,100 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Sender } from "@ant-design/x";
 import { UserOutlined, RobotOutlined } from "@ant-design/icons";
-import { Avatar } from "antd";
+import { Avatar, Alert } from "antd";
 import ConversationsSidebar from "../components/ConversationsSidebar";
-import {
-  useConversationsStore,
-  type Message,
-} from "../stores/conversationsStore";
+import { useConversationsStore } from "../stores/conversationsStore";
 
 const ChatPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const [conversationError, setConversationError] = useState<string | null>(
+    null
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { chatId } = useParams<{ chatId: string }>();
+  const navigate = useNavigate();
 
   // Use conversations store instead of local state
-  const { getCurrentConversation, addMessageToCurrentConversation } =
-    useConversationsStore();
+  const {
+    conversations,
+    getCurrentConversation,
+    loadConversationsFromHistory,
+    sendMessage,
+    selectConversation,
+    selectConversationWithoutNavigation,
+    setNavigationCallback,
+    isLoading: conversationsLoading,
+  } = useConversationsStore();
 
   const currentConversation = getCurrentConversation();
   const messages = useMemo(
     () => currentConversation?.messages || [],
     [currentConversation?.messages]
   );
+
+  // Load conversations from API on component mount
+  useEffect(() => {
+    setConversationError(null); // Clear any previous error when loading
+    loadConversationsFromHistory();
+  }, [loadConversationsFromHistory]);
+
+  // Handle chatId parameter from URL - only after conversations are loaded
+  useEffect(() => {
+    // Only proceed if we have a chatId and conversations have finished loading
+    if (chatId && !conversationsLoading) {
+      if (conversations.length === 0) {
+        // No conversations available
+        setConversationError(
+          `No conversations available. Unable to load conversation "${chatId}".`
+        );
+        return;
+      }
+
+      // Check if the conversation exists in our loaded conversations
+      const conversationExists = conversations.some(
+        (conv) => conv.id === chatId
+      );
+
+      if (conversationExists) {
+        selectConversationWithoutNavigation(chatId); // Use non-navigation method since we're already on the URL
+        setConversationError(null); // Clear any previous error
+      } else {
+        // Conversation doesn't exist, show error but DON'T redirect
+        setConversationError(`Conversation "${chatId}" not found.`);
+      }
+    }
+  }, [
+    chatId,
+    selectConversationWithoutNavigation,
+    conversations,
+    conversationsLoading,
+  ]);
+
+  // Set up navigation callback for the store
+  useEffect(() => {
+    setNavigationCallback(navigate);
+  }, [navigate, setNavigationCallback]);
+
+  // Auto-select first conversation when there's no chatId in URL and conversations are loaded
+  useEffect(() => {
+    if (
+      !chatId &&
+      conversations.length > 0 &&
+      !conversationsLoading &&
+      !conversationError
+    ) {
+      const firstConversation = conversations[0];
+      selectConversation(firstConversation.id);
+    }
+  }, [
+    chatId,
+    conversations,
+    conversationsLoading,
+    conversationError,
+    selectConversation,
+  ]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -40,37 +114,15 @@ const ChatPage: React.FC = () => {
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
 
-    // Add user message to current conversation
-    const userMessage: Message = {
-      key: Date.now().toString(),
-      role: "user",
-      content: content.trim(),
-      timestamp: Date.now(),
-    };
-
-    addMessageToCurrentConversation(userMessage);
     setLoading(true);
-
-    // Simulate AI response
-    setTimeout(() => {
-      const responses = [
-        "That's an interesting question! Let me help you with that.",
-        "I understand what you're asking. Here's what I think...",
-        "Great question! Based on what you've shared, I'd suggest...",
-        "Thanks for sharing that. Here's my perspective on this topic.",
-        "I can definitely help you with that. Let me explain...",
-      ];
-
-      const assistantMessage: Message = {
-        key: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: responses[Math.floor(Math.random() * responses.length)],
-        timestamp: Date.now(),
-      };
-
-      addMessageToCurrentConversation(assistantMessage);
+    try {
+      await sendMessage(content);
+      setInputValue(""); // Clear the input field
+    } catch (error) {
+      console.error("Error sending message:", error);
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -107,14 +159,32 @@ const ChatPage: React.FC = () => {
           }}
         >
           <h2 style={{ margin: 0, color: "#1890ff" }}>
-            {currentConversation?.title || "Chat Assistant"}
+            {conversationsLoading
+              ? "Loading conversations..."
+              : currentConversation?.title || "Chat Assistant"}
           </h2>
           <p style={{ margin: "4px 0 0 0", color: "#666" }}>
-            {currentConversation
+            {conversationsLoading
+              ? "Please wait while we load your chat history"
+              : currentConversation
               ? `${messages.length} messages in this conversation`
               : "No conversation selected"}
           </p>
         </div>
+
+        {/* Error Alert */}
+        {conversationError && (
+          <div style={{ padding: "0 24px 16px 24px" }}>
+            <Alert
+              message="Conversation Not Found"
+              description={conversationError}
+              type="error"
+              showIcon
+              closable
+              onClose={() => setConversationError(null)}
+            />
+          </div>
+        )}
 
         {/* Messages Container */}
         <div
@@ -126,98 +196,116 @@ const ChatPage: React.FC = () => {
             flexDirection: "column",
           }}
         >
-          {messages.map((message) => (
+          {conversationsLoading ? (
             <div
-              key={message.key}
               style={{
                 display: "flex",
-                marginBottom: "16px",
-                alignItems: "flex-start",
-                gap: "12px",
-                justifyContent:
-                  message.role === "user" ? "flex-end" : "flex-start",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100%",
+                color: "#666",
               }}
             >
-              {message.role === "assistant" && (
-                <Avatar
-                  icon={<RobotOutlined />}
-                  style={{ backgroundColor: "#1890ff" }}
-                />
-              )}
-
-              <div
-                style={{
-                  maxWidth: "70%",
-                  padding: "12px 16px",
-                  borderRadius: "12px",
-                  backgroundColor:
-                    message.role === "user" ? "#1890ff" : "#f5f5f5",
-                  color: message.role === "user" ? "white" : "#000",
-                }}
-              >
+              Loading chat history...
+            </div>
+          ) : (
+            <>
+              {messages.map((message) => (
                 <div
+                  key={message.key}
                   style={{
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    marginBottom: "4px",
+                    display: "flex",
+                    marginBottom: "16px",
+                    alignItems: "flex-start",
+                    gap: "12px",
+                    justifyContent:
+                      message.role === "user" ? "flex-end" : "flex-start",
                   }}
                 >
-                  {message.role === "user" ? "You" : "Assistant"}
-                  <span
+                  {message.role === "assistant" && (
+                    <Avatar
+                      icon={<RobotOutlined />}
+                      style={{ backgroundColor: "#1890ff" }}
+                    />
+                  )}
+
+                  <div
                     style={{
-                      fontSize: "12px",
-                      fontWeight: 400,
-                      marginLeft: "8px",
-                      opacity: 0.7,
+                      maxWidth: "70%",
+                      padding: "12px 16px",
+                      borderRadius: "12px",
+                      backgroundColor:
+                        message.role === "user" ? "#1890ff" : "#f5f5f5",
+                      color: message.role === "user" ? "white" : "#000",
                     }}
                   >
-                    {formatTime(message.timestamp)}
-                  </span>
+                    <div
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: 500,
+                        marginBottom: "4px",
+                      }}
+                    >
+                      {message.role === "user" ? "You" : "Assistant"}
+                      <span
+                        style={{
+                          fontSize: "12px",
+                          fontWeight: 400,
+                          marginLeft: "8px",
+                          opacity: 0.7,
+                        }}
+                      >
+                        {formatTime(message.timestamp)}
+                      </span>
+                    </div>
+                    <div>{message.content}</div>
+                  </div>
+
+                  {message.role === "user" && (
+                    <Avatar
+                      icon={<UserOutlined />}
+                      style={{ backgroundColor: "#52c41a" }}
+                    />
+                  )}
                 </div>
-                <div>{message.content}</div>
-              </div>
+              ))}
 
-              {message.role === "user" && (
-                <Avatar
-                  icon={<UserOutlined />}
-                  style={{ backgroundColor: "#52c41a" }}
-                />
-              )}
-            </div>
-          ))}
-
-          {loading && (
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <Avatar
-                icon={<RobotOutlined />}
-                style={{ backgroundColor: "#1890ff" }}
-              />
-              <div
-                style={{
-                  padding: "12px 16px",
-                  borderRadius: "12px",
-                  backgroundColor: "#f5f5f5",
-                  color: "#666",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                }}
-              >
-                <span>Assistant is typing</span>
-                <span
-                  style={{
-                    animation: "pulse 1.5s ease-in-out infinite",
-                    display: "inline-block",
-                  }}
+              {loading && (
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "12px" }}
                 >
-                  ⋯
-                </span>
-              </div>
-            </div>
-          )}
+                  <Avatar
+                    icon={<RobotOutlined />}
+                    style={{ backgroundColor: "#1890ff" }}
+                  />
+                  <div
+                    style={{
+                      padding: "12px 16px",
+                      borderRadius: "12px",
+                      backgroundColor: "#f5f5f5",
+                      color: "#666",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
+                  >
+                    <span>Assistant is typing</span>
+                    <span
+                      style={{
+                        animation: "pulse 1.5s ease-in-out infinite",
+                        display: "inline-block",
+                      }}
+                    >
+                      ⋯
+                    </span>
+                  </div>
+                </div>
+              )}
 
-          {/* Scroll anchor */}
-          <div ref={messagesEndRef} />
+              {/* Scroll anchor */}
+              <div ref={messagesEndRef} />
+            </>
+          )}
         </div>
 
         {/* Input Bar - Sticky to bottom */}
@@ -230,12 +318,19 @@ const ChatPage: React.FC = () => {
           }}
         >
           <Sender
-            placeholder="Type your message here..."
+            value={inputValue}
+            onChange={setInputValue}
+            placeholder={
+              conversationsLoading
+                ? "Loading conversations..."
+                : "Type your message here..."
+            }
             onSubmit={(text) => {
               handleSendMessage(text);
               return Promise.resolve();
             }}
             loading={loading}
+            disabled={conversationsLoading}
             style={{ width: "100%" }}
           />
         </div>
