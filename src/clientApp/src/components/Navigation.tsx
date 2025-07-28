@@ -1,49 +1,47 @@
 import React from "react";
 import { Layout, Button, Drawer, Menu } from "antd";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   MenuOutlined,
   MessageOutlined,
   RobotOutlined,
   SettingOutlined,
+  HomeOutlined,
 } from "@ant-design/icons";
 import { useNavigation } from "../hooks/useNavigation";
 
 const { Header } = Layout;
 
 const Navigation: React.FC = () => {
-  const { isDrawerOpen, currentPage, openDrawer, closeDrawer, setCurrentPage } =
-    useNavigation();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isDrawerOpen, openDrawer, closeDrawer } = useNavigation();
 
   const menuItems = [
     {
-      key: "chat",
+      key: "/",
+      icon: <HomeOutlined />,
+      label: "Home",
+    },
+    {
+      key: "/chat",
       icon: <MessageOutlined />,
       label: "Chat",
     },
     {
-      key: "agents",
+      key: "/agents",
       icon: <RobotOutlined />,
       label: "Agents",
     },
     {
-      key: "settings",
+      key: "/settings",
       icon: <SettingOutlined />,
       label: "Settings",
     },
   ];
 
   const handleMenuClick = (key: string) => {
-    const pageMap: Record<string, "home" | "chat" | "agents" | "settings"> = {
-      chat: "chat",
-      agents: "agents",
-      settings: "settings",
-    };
-
-    const page = pageMap[key];
-    if (page) {
-      setCurrentPage(page);
-    }
-
+    navigate(key);
     closeDrawer();
   };
 
@@ -80,7 +78,7 @@ const Navigation: React.FC = () => {
         <Menu
           mode="vertical"
           items={menuItems}
-          selectedKeys={currentPage !== "home" ? [currentPage] : []}
+          selectedKeys={[location.pathname]}
           onClick={({ key }) => handleMenuClick(key)}
           style={{ border: "none" }}
         />

@@ -206,6 +206,7 @@ const ConversationsSidebar: React.FC = () => {
     deleteConversation,
     selectConversation,
     updateConversationTitle,
+    isLoading,
   } = useConversationsStore();
 
   return (
@@ -237,6 +238,7 @@ const ConversationsSidebar: React.FC = () => {
               icon={<PlusOutlined />}
               onClick={createConversation}
               size="small"
+              disabled={isLoading}
             >
               New
             </Button>
@@ -246,7 +248,19 @@ const ConversationsSidebar: React.FC = () => {
 
       {/* Conversations List */}
       <div style={{ flex: 1, overflow: "auto" }}>
-        {conversations.length === 0 ? (
+        {isLoading ? (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "200px",
+              color: "#666",
+            }}
+          >
+            Loading conversations...
+          </div>
+        ) : conversations.length === 0 ? (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
             description="No conversations yet"
