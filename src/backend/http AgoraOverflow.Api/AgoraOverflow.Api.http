@@ -1,0 +1,22 @@
+@AgoraOverflow.Api_HostAddress = http://localhost:5092
+
+GET {{AgoraOverflow.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+POST {{AgoraOverflow.Api_HostAddress}}/start
+Content-Type: application/json
+
+{}
+
+###
+
+POST {{AgoraOverflow.Api_HostAddress}}/chat/12345678-1234-1234-1234-123456789012/ask
+Content-Type: application/json
+
+{
+  "userMessage": "Hello, I need help with my code"
+}
+
+###
