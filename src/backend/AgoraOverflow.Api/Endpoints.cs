@@ -17,11 +17,11 @@ public static class Endpoints
 
     private static void MapChatEndpoints(this IEndpointRouteBuilder app)
     {
-        var endpoints = app.MapGroup("/chat")
+        var endpoints = app.MapGroup("")
             .WithTags("Chat");
 
         endpoints.MapPublicGroup()
-            .MapEndpoint<StartNewChat>()
+            .MapEndpoint<StartNewConversation>()
             .MapEndpoint<GetConversationHistory>()
             .MapEndpoint<ReplyToUser>();
 

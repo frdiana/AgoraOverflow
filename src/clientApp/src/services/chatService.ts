@@ -1,9 +1,19 @@
 import { apiRequest } from "./apiService";
 
-// API interface for chat history
-export interface ChatHistoryItem {
-  conversationName: string;
-  conversationId: string;
+// API interfaces to match new API response
+export interface ApiMessage {
+  id: string;
+  content: string;
+  timestamp: string; // ISO string
+  sender: "User" | "Agent";
+}
+
+export interface ApiConversation {
+  id: string;
+  name: string;
+  messages: ApiMessage[];
+  createdAt: string; // ISO string
+  updatedAt: string; // ISO string
 }
 
 // API interface for starting a new chat
@@ -21,12 +31,12 @@ export interface SendMessageResponse {
   fromAgent: string;
 }
 
-// Function to fetch chat history from API
-export const fetchChatHistory = async (): Promise<ChatHistoryItem[]> => {
+// Function to fetch conversations with full data including messages
+export const fetchConversations = async (): Promise<ApiConversation[]> => {
   try {
-    return await apiRequest<ChatHistoryItem[]>("/chat/history");
+    return await apiRequest<ApiConversation[]>("/conversations/history");
   } catch (error) {
-    console.error("Failed to fetch chat history:", error);
+    console.error("Failed to fetch conversations:", error);
     return [];
   }
 };
@@ -34,7 +44,7 @@ export const fetchChatHistory = async (): Promise<ChatHistoryItem[]> => {
 // Function to start a new chat
 export const startNewChat = async (): Promise<StartChatResponse | null> => {
   try {
-    return await apiRequest<StartChatResponse>("/chat/start", {
+    return await apiRequest<StartChatResponse>("/conversations/start", {
       method: "POST",
     });
   } catch (error) {
@@ -45,14 +55,17 @@ export const startNewChat = async (): Promise<StartChatResponse | null> => {
 
 // Function to send a message to a chat
 export const sendChatMessage = async (
-  chatId: string,
+  conversationId: string,
   userMessage: string
 ): Promise<SendMessageResponse | null> => {
   try {
-    return await apiRequest<SendMessageResponse>(`/chat/${chatId}/ask`, {
-      method: "POST",
-      body: JSON.stringify({ userMessage }),
-    });
+    return await apiRequest<SendMessageResponse>(
+      `/conversations/${conversationId}/ask`,
+      {
+        method: "POST",
+        body: JSON.stringify({ userMessage }),
+      }
+    );
   } catch (error) {
     console.error("Failed to send chat message:", error);
     return null;

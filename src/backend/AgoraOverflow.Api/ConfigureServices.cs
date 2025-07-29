@@ -7,6 +7,14 @@ public static class ConfigureServices
 {
     public static void AddServices(this WebApplicationBuilder builder)
     {
+        builder.AddKeyedAzureCosmosContainer("conversations");
+        //builder.AddOllamaApiClient("ollama").AddChatClient();
+
+        builder.AddOllamaApiClient("ollama")
+       .AddKeyedChatClient("phi4-mini");
+
+
+
 
         builder.Services.AddValidatorsFromAssemblyContaining<RequestValidator>();
         // Add this after builder creation

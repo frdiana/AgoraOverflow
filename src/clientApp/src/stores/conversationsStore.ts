@@ -1,5 +1,11 @@
 import { create } from "zustand";
-import { fetchChatHistory, startNewChat, sendChatMessage } from "../services";
+import {
+  fetchConversations,
+  startNewChat,
+  sendChatMessage,
+  type ApiConversation,
+  type ApiMessage,
+} from "../services";
 
 export interface Message {
   key: string;
@@ -33,6 +39,25 @@ interface ConversationsState {
   sendMessage: (content: string) => Promise<void>;
 }
 
+// Helper function to convert API message to internal format
+const convertApiMessage = (apiMessage: ApiMessage): Message => ({
+  key: apiMessage.id,
+  role: apiMessage.sender === "User" ? "user" : "assistant",
+  content: apiMessage.content,
+  timestamp: new Date(apiMessage.timestamp).getTime(),
+});
+
+// Helper function to convert API conversation to internal format
+const convertApiConversation = (
+  apiConversation: ApiConversation
+): Conversation => ({
+  id: apiConversation.id,
+  title: apiConversation.name,
+  messages: apiConversation.messages.map(convertApiMessage),
+  createdAt: new Date(apiConversation.createdAt).getTime(),
+  updatedAt: new Date(apiConversation.updatedAt).getTime(),
+});
+
 // Helper function to generate a title from the first user message
 const generateConversationTitle = (messages: Message[]): string => {
   const firstUserMessage = messages.find((m) => m.role === "user");
@@ -57,27 +82,15 @@ export const useConversationsStore = create<ConversationsState>((set, get) => {
     loadConversationsFromHistory: async () => {
       set({ isLoading: true });
       try {
-        const historyItems = await fetchChatHistory();
+        const apiConversations = await fetchConversations();
 
-        // Convert API response to conversations format
-        const conversations: Conversation[] = historyItems.map((item) => ({
-          id: item.conversationId,
-          title: item.conversationName,
-          messages: [
-            {
-              key: `${item.conversationId}-welcome`,
-              role: "assistant",
-              content: "Hello! How can I help you today?",
-              timestamp: Date.now(),
-            },
-          ],
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-        }));
+        // Convert API response to internal format
+        const conversations: Conversation[] = apiConversations.map(
+          convertApiConversation
+        );
 
         set({
           conversations,
-          // Don't auto-select first conversation here - let the ChatPage handle URL-based selection
           isLoading: false,
         });
       } catch (error) {
@@ -93,14 +106,7 @@ export const useConversationsStore = create<ConversationsState>((set, get) => {
           const newConversation: Conversation = {
             id: response.chatId,
             title: "New Conversation",
-            messages: [
-              {
-                key: `${response.chatId}-welcome`,
-                role: "assistant",
-                content: "Hello! How can I help you today?",
-                timestamp: Date.now(),
-              },
-            ],
+            messages: [],
             createdAt: Date.now(),
             updatedAt: Date.now(),
           };
