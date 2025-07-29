@@ -1,0 +1,91 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch .NET Aspire AppHost",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/backend/AgoraOverflow.AppHost/bin/Debug/net9.0/AgoraOverflow.AppHost.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/backend/AgoraOverflow.AppHost",
+      "stopAtEntry": false,
+      "console": "externalTerminal",
+      "launchBrowser": {
+        "enabled": true,
+        "args": "${auto-detect-url}",
+        "windows": {
+          "command": "cmd.exe",
+          "args": "/C start ${auto-detect-url}"
+        }
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DOTNET_ENVIRONMENT": "Development"
+      },
+      "sourceFileMap": {
+        "/Views": "${workspaceFolder}/Views"
+      },
+      "preLaunchTask": "build-solution"
+    },
+    {
+      "name": "Launch API Only",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/backend/AgoraOverflow.Api/bin/Debug/net10.0/AgoraOverflow.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/backend/AgoraOverflow.Api",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "launchBrowser": {
+        "enabled": true,
+        "args": "${auto-detect-url}",
+        "windows": {
+          "command": "cmd.exe",
+          "args": "/C start ${auto-detect-url}"
+        }
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "sourceFileMap": {
+        "/Views": "${workspaceFolder}/Views"
+      },
+      "preLaunchTask": "build-solution"
+    },
+    {
+      "name": "Launch Frontend Only",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/.bin/vite",
+      "args": ["--mode", "development"],
+      "cwd": "${workspaceFolder}/src/clientApp",
+      "console": "integratedTerminal",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Attach to Chrome",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9222,
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/src/clientApp/src"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Launch Full Stack (Aspire)",
+      "configurations": ["Launch .NET Aspire AppHost"],
+      "stopAll": true
+    },
+    {
+      "name": "Launch Full Stack (Separate)",
+      "configurations": ["Launch API Only", "Launch Frontend Only"],
+      "stopAll": true
+    }
+  ]
+}

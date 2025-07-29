@@ -1,17 +1,17 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Sender } from "@ant-design/x";
+import { Bubble, Sender } from "@ant-design/x";
 import { UserOutlined, RobotOutlined } from "@ant-design/icons";
-import { Avatar, Alert } from "antd";
+import { Alert, Flex } from "antd";
 import ConversationsSidebar from "../components/ConversationsSidebar";
 import { useConversationsStore } from "../stores/conversationsStore";
 
 const ChatPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
-  const [inputValue, setInputValue] = useState("");
   const [conversationError, setConversationError] = useState<string | null>(
     null
   );
+  const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { chatId } = useParams<{ chatId: string }>();
   const navigate = useNavigate();
@@ -29,10 +29,39 @@ const ChatPage: React.FC = () => {
   } = useConversationsStore();
 
   const currentConversation = getCurrentConversation();
-  const messages = useMemo(
-    () => currentConversation?.messages || [],
-    [currentConversation?.messages]
-  );
+
+  // Convert internal messages to Bubble format
+  const bubbleMessages = useMemo(() => {
+    if (!currentConversation?.messages) return [];
+
+    return currentConversation.messages.map((message, index) => {
+      const isUser = message.role === "user";
+      const prevMessage =
+        index > 0 ? currentConversation.messages[index - 1] : null;
+      const isSameRoleAsPrevious = prevMessage?.role === message.role;
+
+      return {
+        key: message.key,
+        placement: isUser ? ("end" as const) : ("start" as const),
+        content: message.content,
+        avatar: isSameRoleAsPrevious
+          ? {} // Empty avatar for consecutive messages from same role
+          : {
+              icon: isUser ? <UserOutlined /> : <RobotOutlined />,
+              style: {
+                backgroundColor: isUser ? "#52c41a" : "#1890ff",
+                color: "#fff",
+              },
+            },
+        styles: isSameRoleAsPrevious
+          ? {
+              avatar: { visibility: "hidden" as const },
+            }
+          : undefined,
+        timestamp: message.timestamp,
+      };
+    });
+  }, [currentConversation?.messages]);
 
   // Load conversations from API on component mount
   useEffect(() => {
@@ -102,14 +131,7 @@ const ChatPage: React.FC = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, loading]);
-
-  const formatTime = (timestamp: number) => {
-    return new Date(timestamp).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  }, [bubbleMessages, loading]);
 
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
@@ -117,9 +139,10 @@ const ChatPage: React.FC = () => {
     setLoading(true);
     try {
       await sendMessage(content);
-      setInputValue(""); // Clear the input field
+      setInputValue(""); // Clear the input after successful message sending
     } catch (error) {
       console.error("Error sending message:", error);
+      throw error; // Re-throw to prevent clearing input on error
     } finally {
       setLoading(false);
     }
@@ -167,7 +190,7 @@ const ChatPage: React.FC = () => {
             {conversationsLoading
               ? "Please wait while we load your chat history"
               : currentConversation
-              ? `${messages.length} messages in this conversation`
+              ? `${bubbleMessages.length} messages in this conversation`
               : "No conversation selected"}
           </p>
         </div>
@@ -190,10 +213,9 @@ const ChatPage: React.FC = () => {
         <div
           style={{
             flex: 1,
-            overflowY: "auto",
-            padding: "16px 24px",
             display: "flex",
             flexDirection: "column",
+            minHeight: 0, // Allows flex child to shrink
           }}
         >
           {conversationsLoading ? (
@@ -209,102 +231,29 @@ const ChatPage: React.FC = () => {
               Loading chat history...
             </div>
           ) : (
-            <>
-              {messages.map((message) => (
-                <div
-                  key={message.key}
-                  style={{
-                    display: "flex",
-                    marginBottom: "16px",
-                    alignItems: "flex-start",
-                    gap: "12px",
-                    justifyContent:
-                      message.role === "user" ? "flex-end" : "flex-start",
-                  }}
-                >
-                  {message.role === "assistant" && (
-                    <Avatar
-                      icon={<RobotOutlined />}
-                      style={{ backgroundColor: "#1890ff" }}
+            <div style={{ flex: 1, minHeight: 0 }}>
+              <div
+                style={{
+                  height: "100%",
+                  padding: "16px 24px",
+                  overflowY: "auto",
+                }}
+              >
+                <Flex gap="small" vertical>
+                  {bubbleMessages.map((bubble) => (
+                    <Bubble
+                      key={bubble.key}
+                      placement={bubble.placement}
+                      content={bubble.content}
+                      avatar={bubble.avatar}
+                      styles={bubble.styles}
                     />
-                  )}
-
-                  <div
-                    style={{
-                      maxWidth: "70%",
-                      padding: "12px 16px",
-                      borderRadius: "12px",
-                      backgroundColor:
-                        message.role === "user" ? "#1890ff" : "#f5f5f5",
-                      color: message.role === "user" ? "white" : "#000",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: "14px",
-                        fontWeight: 500,
-                        marginBottom: "4px",
-                      }}
-                    >
-                      {message.role === "user" ? "You" : "Assistant"}
-                      <span
-                        style={{
-                          fontSize: "12px",
-                          fontWeight: 400,
-                          marginLeft: "8px",
-                          opacity: 0.7,
-                        }}
-                      >
-                        {formatTime(message.timestamp)}
-                      </span>
-                    </div>
-                    <div>{message.content}</div>
-                  </div>
-
-                  {message.role === "user" && (
-                    <Avatar
-                      icon={<UserOutlined />}
-                      style={{ backgroundColor: "#52c41a" }}
-                    />
-                  )}
-                </div>
-              ))}
-
-              {loading && (
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "12px" }}
-                >
-                  <Avatar
-                    icon={<RobotOutlined />}
-                    style={{ backgroundColor: "#1890ff" }}
-                  />
-                  <div
-                    style={{
-                      padding: "12px 16px",
-                      borderRadius: "12px",
-                      backgroundColor: "#f5f5f5",
-                      color: "#666",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "4px",
-                    }}
-                  >
-                    <span>Assistant is typing</span>
-                    <span
-                      style={{
-                        animation: "pulse 1.5s ease-in-out infinite",
-                        display: "inline-block",
-                      }}
-                    >
-                      ⋯
-                    </span>
-                  </div>
-                </div>
-              )}
-
+                  ))}
+                </Flex>
+              </div>
               {/* Scroll anchor */}
               <div ref={messagesEndRef} />
-            </>
+            </div>
           )}
         </div>
 
@@ -318,19 +267,18 @@ const ChatPage: React.FC = () => {
           }}
         >
           <Sender
-            value={inputValue}
-            onChange={setInputValue}
             placeholder={
               conversationsLoading
                 ? "Loading conversations..."
                 : "Type your message here..."
             }
-            onSubmit={(text) => {
-              handleSendMessage(text);
-              return Promise.resolve();
+            value={inputValue}
+            onChange={(text) => setInputValue(text)}
+            onSubmit={async (text) => {
+              await handleSendMessage(text);
             }}
             loading={loading}
-            disabled={conversationsLoading}
+            disabled={conversationsLoading || !currentConversation}
             style={{ width: "100%" }}
           />
         </div>
