@@ -9,8 +9,6 @@ import {
   Space,
   Button,
   Tooltip,
-  Badge,
-  Divider,
   Select,
   Input,
 } from "antd";
@@ -22,6 +20,7 @@ import {
   FilterOutlined,
 } from "@ant-design/icons";
 import { useAgentsStore, type Agent } from "../stores/agentsStore";
+import "./AgentsPage.css";
 
 const { Title, Paragraph, Text } = Typography;
 const { Option } = Select;
@@ -35,12 +34,22 @@ interface AgentCardProps {
 const AgentCard: React.FC<AgentCardProps> = ({ agent, onToggle }) => {
   const getCategoryColor = (category: string) => {
     const colors = {
-      coding: "blue",
-      creative: "purple",
-      analysis: "green",
-      productivity: "orange",
+      coding: "#1890ff",
+      creative: "#722ed1",
+      analysis: "#52c41a",
+      productivity: "#fa8c16",
     };
-    return colors[category as keyof typeof colors] || "default";
+    return colors[category as keyof typeof colors] || "#8c8c8c";
+  };
+
+  const getCategoryBgColor = (category: string) => {
+    const colors = {
+      coding: "#e6f7ff",
+      creative: "#f9f0ff",
+      analysis: "#f6ffed",
+      productivity: "#fff7e6",
+    };
+    return colors[category as keyof typeof colors] || "#f5f5f5";
   };
 
   const formatCreatedDate = (timestamp: number) => {
@@ -64,110 +73,246 @@ const AgentCard: React.FC<AgentCardProps> = ({ agent, onToggle }) => {
   };
 
   return (
-    <Badge.Ribbon
-      text={agent.enabled ? "Active" : "Inactive"}
-      color={agent.enabled ? "green" : "gray"}
-    >
+    <div style={{ position: "relative", height: "100%" }}>
       <Card
         style={{
-          height: "300px",
-          transition: "all 0.3s ease",
-          border: agent.enabled ? "2px solid #52c41a" : "1px solid #d9d9d9",
+          height: "340px",
+          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          border: agent.enabled 
+            ? `2px solid ${getCategoryColor(agent.category)}` 
+            : "1px solid #f0f0f0",
+          borderRadius: "16px",
           boxShadow: agent.enabled
-            ? "0 4px 12px rgba(82, 196, 26, 0.15)"
-            : "0 2px 8px rgba(0, 0, 0, 0.1)",
+            ? `0 8px 32px ${getCategoryColor(agent.category)}20, 0 4px 16px rgba(0, 0, 0, 0.08)`
+            : "0 4px 16px rgba(0, 0, 0, 0.06)",
+          background: agent.enabled 
+            ? `linear-gradient(135deg, ${getCategoryBgColor(agent.category)} 0%, #ffffff 100%)`
+            : "#ffffff",
+          overflow: "hidden",
         }}
         hoverable
+        className="agent-card"
+        bodyStyle={{
+          padding: "20px",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+        }}
         actions={[
-          <Tooltip
-            title={agent.enabled ? "Disable Agent" : "Enable Agent"}
-            key="toggle"
+          <div 
+            key="actions" 
+            style={{ 
+              display: "flex", 
+              justifyContent: "space-between", 
+              alignItems: "center",
+              padding: "0 8px",
+              width: "100%"
+            }}
           >
-            <Switch
-              checked={agent.enabled}
-              onChange={() => onToggle(agent.id)}
-              checkedChildren={<CheckCircleOutlined />}
-              unCheckedChildren={<CloseCircleOutlined />}
-            />
-          </Tooltip>,
-          <Tooltip title="Agent Settings" key="settings">
-            <SettingOutlined />
-          </Tooltip>,
+            <Tooltip
+              title={agent.enabled ? "Disable Agent" : "Enable Agent"}
+              placement="bottom"
+            >
+              <Switch
+                checked={agent.enabled}
+                onChange={() => onToggle(agent.id)}
+                checkedChildren={<CheckCircleOutlined />}
+                unCheckedChildren={<CloseCircleOutlined />}
+                style={{
+                  background: agent.enabled ? getCategoryColor(agent.category) : undefined
+                }}
+              />
+            </Tooltip>
+            <Tooltip title="Agent Settings" placement="bottom">
+              <Button
+                type="text"
+                icon={<SettingOutlined />}
+                style={{ 
+                  color: "#8c8c8c",
+                  transition: "all 0.2s"
+                }}
+                className="settings-btn"
+              />
+            </Tooltip>
+          </div>
         ]}
       >
-        <Card.Meta
-          avatar={
+        {/* Status Badge */}
+        <div
+          className={agent.enabled ? "status-badge-active" : ""}
+          style={{
+            position: "absolute",
+            top: "16px",
+            right: "16px",
+            background: agent.enabled 
+              ? getCategoryColor(agent.category)
+              : "#bfbfbf",
+            color: "#ffffff",
+            padding: "4px 12px",
+            borderRadius: "12px",
+            fontSize: "11px",
+            fontWeight: "600",
+            textTransform: "uppercase",
+            letterSpacing: "0.5px",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+          }}
+        >
+          {agent.enabled ? "Active" : "Inactive"}
+        </div>
+
+        {/* Header Section */}
+        <div style={{ marginTop: "8px", marginBottom: "16px" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "16px" }}>
             <div
               style={{
-                fontSize: "32px",
+                fontSize: "36px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                width: "48px",
-                height: "48px",
-                borderRadius: "8px",
-                background: agent.enabled ? "#f6ffed" : "#f5f5f5",
+                width: "56px",
+                height: "56px",
+                borderRadius: "16px",
+                background: agent.enabled 
+                  ? `linear-gradient(135deg, ${getCategoryColor(agent.category)}15, ${getCategoryColor(agent.category)}08)`
+                  : "#f8f8f8",
+                border: `2px solid ${agent.enabled ? getCategoryColor(agent.category) + "30" : "#f0f0f0"}`,
+                flexShrink: 0,
               }}
             >
               {agent.icon}
             </div>
-          }
-          title={
-            <Space direction="vertical" size={0} style={{ width: "100%" }}>
-              <Text strong style={{ fontSize: "16px" }}>
-                {agent.name}
-              </Text>
-              <Space size={4}>
-                <Tag
-                  color={getCategoryColor(agent.category)}
-                  style={{ fontSize: "11px" }}
-                >
-                  {agent.category.toUpperCase()}
-                </Tag>
-                <Text type="secondary" style={{ fontSize: "12px" }}>
-                  Added {formatCreatedDate(agent.createdAt)}
-                </Text>
-              </Space>
-            </Space>
-          }
-          description={
-            <div style={{ height: "80px", overflow: "hidden" }}>
-              <Paragraph
-                ellipsis={{ rows: 3, tooltip: agent.description }}
-                style={{ margin: 0, fontSize: "13px", lineHeight: "1.4" }}
+            
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Title 
+                level={4} 
+                style={{ 
+                  margin: "0 0 8px 0", 
+                  fontSize: "18px",
+                  fontWeight: "600",
+                  color: "#262626",
+                  lineHeight: "1.3"
+                }}
               >
-                {agent.description}
-              </Paragraph>
+                {agent.name}
+              </Title>
+              
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+                <Tag
+                  style={{
+                    background: getCategoryBgColor(agent.category),
+                    color: getCategoryColor(agent.category),
+                    border: `1px solid ${getCategoryColor(agent.category)}30`,
+                    borderRadius: "8px",
+                    fontSize: "11px",
+                    fontWeight: "600",
+                    padding: "2px 8px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.3px",
+                  }}
+                >
+                  {agent.category}
+                </Tag>
+                <Text 
+                  type="secondary" 
+                  style={{ 
+                    fontSize: "12px",
+                    color: "#8c8c8c"
+                  }}
+                >
+                  {formatCreatedDate(agent.createdAt)}
+                </Text>
+              </div>
             </div>
-          }
-        />
+          </div>
+        </div>
 
-        <Divider style={{ margin: "12px 0 8px 0" }} />
+        {/* Description */}
+        <div style={{ flex: 1, marginBottom: "16px" }}>
+          <Paragraph
+            ellipsis={{ 
+              rows: 3, 
+              tooltip: {
+                title: agent.description,
+                placement: "topLeft"
+              }
+            }}
+            style={{ 
+              margin: 0, 
+              fontSize: "14px", 
+              lineHeight: "1.5",
+              color: "#595959"
+            }}
+          >
+            {agent.description}
+          </Paragraph>
+        </div>
 
-        <div style={{ marginTop: "8px" }}>
-          <Text type="secondary" style={{ fontSize: "12px", fontWeight: 500 }}>
-            Capabilities:
+        {/* Capabilities */}
+        <div>
+          <Text 
+            strong 
+            style={{ 
+              fontSize: "13px", 
+              color: "#8c8c8c",
+              textTransform: "uppercase",
+              letterSpacing: "0.3px",
+              marginBottom: "8px",
+              display: "block"
+            }}
+          >
+            Capabilities
           </Text>
-          <div style={{ marginTop: "4px" }}>
-            {agent.capabilities.slice(0, 2).map((capability, index) => (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+            {agent.capabilities.slice(0, 3).map((capability, index) => (
               <Tag
                 key={index}
-                style={{ fontSize: "11px", margin: "2px 4px 2px 0" }}
+                className="capability-tag"
+                style={{
+                  fontSize: "12px",
+                  borderRadius: "6px",
+                  border: "1px solid #f0f0f0",
+                  background: "#fafafa",
+                  color: "#595959",
+                  margin: 0,
+                  padding: "2px 8px",
+                }}
               >
                 {capability}
               </Tag>
             ))}
-            {agent.capabilities.length > 2 && (
-              <Tooltip title={agent.capabilities.slice(2).join(", ")}>
-                <Tag style={{ fontSize: "11px" }}>
-                  +{agent.capabilities.length - 2} more
+            {agent.capabilities.length > 3 && (
+              <Tooltip 
+                title={
+                  <div>
+                    <div style={{ marginBottom: "4px", fontWeight: "600" }}>All Capabilities:</div>
+                    {agent.capabilities.map((cap, idx) => (
+                      <div key={idx} style={{ margin: "2px 0" }}>• {cap}</div>
+                    ))}
+                  </div>
+                }
+                placement="topLeft"
+              >
+                <Tag 
+                  className="capability-tag"
+                  style={{
+                    fontSize: "12px",
+                    borderRadius: "6px",
+                    border: `1px solid ${getCategoryColor(agent.category)}30`,
+                    background: getCategoryBgColor(agent.category),
+                    color: getCategoryColor(agent.category),
+                    margin: 0,
+                    padding: "2px 8px",
+                    fontWeight: "600",
+                  }}
+                >
+                  +{agent.capabilities.length - 3}
                 </Tag>
               </Tooltip>
             )}
           </div>
         </div>
       </Card>
-    </Badge.Ribbon>
+    </div>
   );
 };
 
@@ -337,13 +482,15 @@ const AgentsPage: React.FC = () => {
       </div>
 
       {/* Agents Grid */}
-      <Row gutter={[24, 24]}>
-        {filteredAgents.map((agent) => (
-          <Col key={agent.id} xs={24} sm={12} lg={8} xl={8}>
-            <AgentCard agent={agent} onToggle={toggleAgent} />
-          </Col>
-        ))}
-      </Row>
+      <div className="agents-container">
+        <Row gutter={[20, 24]}>
+          {filteredAgents.map((agent) => (
+            <Col key={agent.id} xs={24} sm={12} md={8} lg={6} xl={6}>
+              <AgentCard agent={agent} onToggle={toggleAgent} />
+            </Col>
+          ))}
+        </Row>
+      </div>
 
       {filteredAgents.length === 0 && (
         <div

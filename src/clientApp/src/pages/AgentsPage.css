@@ -1,0 +1,89 @@
+/* Agent Card Hover Effects */
+.agent-card:hover {
+  transform: translateY(-4px) !important;
+}
+
+.agent-card .ant-card-actions {
+  border-top: 1px solid #f0f0f0;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+}
+
+.agent-card .settings-btn {
+  transition: all 0.2s ease;
+}
+
+.agent-card:hover .settings-btn {
+  color: #1890ff !important;
+}
+
+/* Card Animation on Load */
+.agent-card {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Grid Adjustments */
+@media (min-width: 1600px) {
+  .agents-container .ant-col {
+    max-width: calc(25% - 15px);
+    flex: 0 0 calc(25% - 15px);
+  }
+}
+
+@media (min-width: 2000px) {
+  .agents-container .ant-col {
+    max-width: calc(20% - 16px);
+    flex: 0 0 calc(20% - 16px);
+  }
+}
+
+@media (max-width: 1200px) {
+  .agent-card {
+    height: 320px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .agent-card {
+    height: 280px !important;
+  }
+}
+
+/* Custom Switch Styling */
+.ant-switch-checked {
+  background-color: #52c41a;
+}
+
+/* Tag Hover Effects */
+.capability-tag:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
+/* Status Badge Pulse Animation for Active Agents */
+.status-badge-active {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(82, 196, 26, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(82, 196, 26, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(82, 196, 26, 0);
+  }
+}
