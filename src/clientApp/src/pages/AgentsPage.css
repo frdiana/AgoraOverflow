@@ -4,8 +4,8 @@
 }
 
 .agent-card .ant-card-actions {
-  border-top: 1px solid #f0f0f0;
-  background: rgba(255, 255, 255, 0.8);
+  border-top: 1px solid var(--border-secondary);
+  background: var(--bg-card);
   backdrop-filter: blur(8px);
 }
 
@@ -14,12 +14,14 @@
 }
 
 .agent-card:hover .settings-btn {
-  color: #1890ff !important;
+  color: var(--text-accent) !important;
 }
 
 /* Card Animation on Load */
 .agent-card {
   animation: fadeInUp 0.5s ease-out forwards;
+  background: var(--bg-card) !important;
+  border-color: var(--border-secondary) !important;
 }
 
 @keyframes fadeInUp {
@@ -86,4 +88,42 @@
   100% {
     box-shadow: 0 0 0 0 rgba(82, 196, 26, 0);
   }
+}
+
+/* Dark mode specific overrides for agents page */
+.dark-mode .agents-page-container {
+  background: var(--bg-gradient) !important;
+}
+
+.dark-mode .agents-header {
+  background: var(--bg-card) !important;
+  box-shadow: var(--shadow-medium) !important;
+}
+
+.dark-mode .agents-header h2 {
+  background: var(--text-gradient) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+.dark-mode .agents-stats-card {
+  background: var(--bg-card) !important;
+  border-color: var(--border-secondary) !important;
+}
+
+.dark-mode .agent-card {
+  background: var(--bg-card) !important;
+  border-color: var(--border-secondary) !important;
+}
+
+.dark-mode .agent-card.active {
+  border-color: var(--border-accent) !important;
+  box-shadow: var(--shadow-accent) !important;
+}
+
+.dark-mode .capability-tag {
+  background: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-secondary) !important;
 }

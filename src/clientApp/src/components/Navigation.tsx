@@ -52,8 +52,8 @@ const Navigation: React.FC = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          background: "#fff",
-          borderBottom: "1px solid #f0f0f0",
+          background: "#171717",
+          borderBottom: "1px solid #404040",
           padding: "0 16px",
         }}
       >
@@ -62,9 +62,14 @@ const Navigation: React.FC = () => {
             type="text"
             icon={<MenuOutlined />}
             onClick={openDrawer}
-            style={{ marginRight: 16 }}
+            style={{
+              marginRight: 16,
+              color: "#ececec",
+              background: "transparent",
+              border: "none",
+            }}
           />
-          <h2 style={{ margin: 0, color: "#1890ff" }}>AgoraOverflow</h2>
+          <h2 style={{ margin: 0, color: "#ececec" }}>AgoraOverflow</h2>
         </div>
       </Header>
 
@@ -74,13 +79,29 @@ const Navigation: React.FC = () => {
         onClose={closeDrawer}
         open={isDrawerOpen}
         width={250}
+        styles={{
+          body: {
+            background: "#171717",
+            padding: 0,
+          },
+          header: {
+            background: "#171717",
+            borderBottom: "1px solid #404040",
+            color: "#ececec",
+          },
+        }}
+        closeIcon={<span style={{ color: "#ececec" }}>×</span>}
       >
         <Menu
           mode="vertical"
           items={menuItems}
           selectedKeys={[location.pathname]}
           onClick={({ key }) => handleMenuClick(key)}
-          style={{ border: "none" }}
+          style={{
+            border: "none",
+            background: "#171717",
+            color: "#ececec",
+          }}
         />
       </Drawer>
     </>

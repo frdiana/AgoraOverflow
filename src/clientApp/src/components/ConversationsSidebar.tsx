@@ -21,6 +21,7 @@ import {
   useConversationsStore,
   type Conversation,
 } from "../stores/conversationsStore";
+import "../pages/ChatPage.css";
 
 const { Text } = Typography;
 
@@ -80,18 +81,19 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
 
   return (
     <List.Item
+      className="conversation-item"
       style={{
-        padding: "12px 16px",
-        margin: "4px 8px",
+        padding: "8px 12px",
+        marginBottom: "2px",
         borderRadius: "8px",
-        backgroundColor: isActive ? "#e6f7ff" : "transparent",
-        border: isActive ? "1px solid #91d5ff" : "1px solid transparent",
+        backgroundColor: isActive ? "#2a2a2a" : "transparent",
+        border: "none",
         cursor: "pointer",
         transition: "all 0.2s ease",
       }}
       onMouseEnter={(e) => {
         if (!isActive) {
-          e.currentTarget.style.backgroundColor = "#f5f5f5";
+          e.currentTarget.style.backgroundColor = "#2a2a2a";
         }
       }}
       onMouseLeave={(e) => {
@@ -108,6 +110,18 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
                   type="text"
                   size="small"
                   icon={<EditOutlined />}
+                  style={{
+                    borderRadius: "4px",
+                    color: "#8e8ea0",
+                    transition: "all 0.2s ease",
+                    width: "20px",
+                    height: "20px",
+                    padding: "0",
+                    background: "transparent",
+                    border: "none",
+                    opacity: 0,
+                  }}
+                  className="conversation-action"
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsEditing(true);
@@ -131,6 +145,18 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
                     size="small"
                     icon={<DeleteOutlined />}
                     danger
+                    style={{
+                      borderRadius: "4px",
+                      color: "#8e8ea0",
+                      transition: "all 0.2s ease",
+                      width: "20px",
+                      height: "20px",
+                      padding: "0",
+                      background: "transparent",
+                      border: "none",
+                      opacity: 0,
+                    }}
+                    className="conversation-action"
                     onClick={(e) => e.stopPropagation()}
                   />
                 </Popconfirm>
@@ -142,6 +168,14 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
                 type="text"
                 size="small"
                 icon={<CheckOutlined />}
+                style={{
+                  color: "#10a37f",
+                  background: "transparent",
+                  border: "none",
+                  width: "20px",
+                  height: "20px",
+                  padding: "0",
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleSaveTitle();
@@ -152,6 +186,14 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
                 type="text"
                 size="small"
                 icon={<CloseOutlined />}
+                style={{
+                  color: "#8e8ea0",
+                  background: "transparent",
+                  border: "none",
+                  width: "20px",
+                  height: "20px",
+                  padding: "0",
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleCancelEdit();
@@ -162,7 +204,25 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
     >
       <List.Item.Meta
         avatar={
-          <MessageOutlined style={{ color: isActive ? "#1890ff" : "#666" }} />
+          <div
+            style={{
+              width: "20px",
+              height: "20px",
+              borderRadius: "4px",
+              background: isActive ? "#10a37f" : "#404040",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.2s ease",
+            }}
+          >
+            <MessageOutlined
+              style={{
+                color: "#ececec",
+                fontSize: "10px",
+              }}
+            />
+          </div>
         }
         title={
           isEditing ? (
@@ -174,12 +234,21 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
               autoFocus
               size="small"
               onClick={(e) => e.stopPropagation()}
+              style={{
+                borderRadius: "4px",
+                border: "1px solid #404040",
+                background: "#2f2f2f",
+                color: "#ececec",
+                fontSize: "13px",
+              }}
             />
           ) : (
             <Text
               style={{
-                color: isActive ? "#1890ff" : "#000",
+                color: isActive ? "#ececec" : "#b3b3b3",
                 fontWeight: isActive ? 500 : 400,
+                fontSize: "13px",
+                lineHeight: "16px",
               }}
               ellipsis={{ tooltip: conversation.title }}
             >
@@ -187,12 +256,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
             </Text>
           )
         }
-        description={
-          <Text type="secondary" style={{ fontSize: "12px" }}>
-            {conversation.messages.length} messages •{" "}
-            {formatDate(conversation.updatedAt)}
-          </Text>
-        }
+        description={null}
       />
     </List.Item>
   );
@@ -210,26 +274,26 @@ const ConversationsSidebar: React.FC = () => {
   } = useConversationsStore();
 
   return (
-    <div
-      style={{
-        width: "320px",
-        height: "100%",
-        borderRight: "1px solid #f0f0f0",
-        background: "#fafafa",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <div className="chat-sidebar">
       {/* Header */}
       <div
         style={{
           padding: "16px",
-          borderBottom: "1px solid #f0f0f0",
-          background: "#fff",
+          borderBottom: "1px solid #404040",
+          background: "#171717",
+          position: "relative",
         }}
       >
         <Space style={{ width: "100%", justifyContent: "space-between" }}>
-          <Typography.Title level={4} style={{ margin: 0 }}>
+          <Typography.Title
+            level={4}
+            style={{
+              margin: 0,
+              color: "#ececec",
+              fontWeight: 600,
+              fontSize: "16px",
+            }}
+          >
             Conversations
           </Typography.Title>
           <Tooltip title="New conversation">
@@ -239,6 +303,15 @@ const ConversationsSidebar: React.FC = () => {
               onClick={createConversation}
               size="small"
               disabled={isLoading}
+              style={{
+                background: "#2f2f2f",
+                border: "1px solid #404040",
+                borderRadius: "6px",
+                height: "28px",
+                fontWeight: 400,
+                boxShadow: "none",
+                color: "#ececec",
+              }}
             >
               New
             </Button>
@@ -247,29 +320,55 @@ const ConversationsSidebar: React.FC = () => {
       </div>
 
       {/* Conversations List */}
-      <div style={{ flex: 1, overflow: "auto" }}>
+      <div className="conversations-list-container">
         {isLoading ? (
           <div
             style={{
               display: "flex",
+              flexDirection: "column",
               justifyContent: "center",
               alignItems: "center",
               height: "200px",
-              color: "#666",
+              color: "#8e8ea0",
+              fontSize: "14px",
+              fontWeight: 400,
             }}
           >
+            <div
+              style={{
+                animation: "pulse 1.5s ease-in-out infinite",
+                marginBottom: "12px",
+                width: "20px",
+                height: "20px",
+                borderRadius: "50%",
+                background: "#404040",
+              }}
+            />
             Loading conversations...
           </div>
         ) : conversations.length === 0 ? (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description="No conversations yet"
-            style={{ marginTop: "60px" }}
+            description={
+              <span style={{ color: "#8e8ea0", fontSize: "14px" }}>
+                No conversations yet
+              </span>
+            }
+            style={{ marginTop: "80px" }}
           >
             <Button
               type="primary"
               icon={<PlusOutlined />}
               onClick={createConversation}
+              style={{
+                background: "#2f2f2f",
+                border: "1px solid #404040",
+                borderRadius: "6px",
+                height: "32px",
+                fontWeight: 400,
+                boxShadow: "none",
+                color: "#ececec",
+              }}
             >
               Start a conversation
             </Button>
@@ -278,7 +377,10 @@ const ConversationsSidebar: React.FC = () => {
           <List
             dataSource={conversations}
             split={false}
-            style={{ padding: "8px 0" }}
+            style={{
+              padding: "4px 8px 8px 8px",
+              minHeight: "100%",
+            }}
             renderItem={(conversation) => (
               <ConversationItem
                 key={conversation.id}

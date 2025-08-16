@@ -5,6 +5,7 @@ import { UserOutlined, RobotOutlined } from "@ant-design/icons";
 import { Alert, Flex } from "antd";
 import ConversationsSidebar from "../components/ConversationsSidebar";
 import { useConversationsStore } from "../stores/conversationsStore";
+import "./ChatPage.css";
 
 const ChatPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -49,8 +50,18 @@ const ChatPage: React.FC = () => {
           : {
               icon: isUser ? <UserOutlined /> : <RobotOutlined />,
               style: {
-                backgroundColor: isUser ? "#52c41a" : "#1890ff",
-                color: "#fff",
+                backgroundColor: isUser
+                  ? "linear-gradient(135deg, #52c41a 0%, #73d13d 100%)"
+                  : "linear-gradient(135deg, #1890ff 0%, #40a9ff 100%)",
+                color: "#ffffff",
+                borderRadius: "12px",
+                width: "36px",
+                height: "36px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "16px",
+                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
               },
             },
         styles: isSameRoleAsPrevious
@@ -149,44 +160,20 @@ const ChatPage: React.FC = () => {
   };
 
   return (
-    <div
-      style={{
-        height: "calc(100vh - 120px)",
-        display: "flex",
-        background: "#fff",
-        borderRadius: "8px",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-        overflow: "hidden",
-        minWidth: 0, // Prevents flex items from overflowing
-      }}
-    >
+    <div className="chat-container" style={{ position: "relative" }}>
       {/* Conversations Sidebar */}
       <ConversationsSidebar />
 
       {/* Main Chat Area */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          minWidth: 0, // Prevents overflow
-        }}
-      >
+      <div className="chat-main-area">
         {/* Header */}
-        <div
-          style={{
-            padding: "16px 24px",
-            borderBottom: "1px solid #f0f0f0",
-            background: "#fafafa",
-            flexShrink: 0,
-          }}
-        >
-          <h2 style={{ margin: 0, color: "#1890ff" }}>
+        <div className="chat-header">
+          <h2>
             {conversationsLoading
               ? "Loading conversations..."
               : currentConversation?.title || "Chat Assistant"}
           </h2>
-          <p style={{ margin: "4px 0 0 0", color: "#666" }}>
+          <p>
             {conversationsLoading
               ? "Please wait while we load your chat history"
               : currentConversation
@@ -197,7 +184,7 @@ const ChatPage: React.FC = () => {
 
         {/* Error Alert */}
         {conversationError && (
-          <div style={{ padding: "0 24px 16px 24px" }}>
+          <div className="error-alert-container">
             <Alert
               message="Conversation Not Found"
               description={conversationError}
@@ -205,40 +192,24 @@ const ChatPage: React.FC = () => {
               showIcon
               closable
               onClose={() => setConversationError(null)}
+              style={{
+                borderRadius: "12px",
+                border: "1px solid #ffccc7",
+                background: "linear-gradient(135deg, #fff2f0 0%, #ffffff 100%)",
+              }}
             />
           </div>
         )}
 
         {/* Messages Container */}
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            minHeight: 0, // Allows flex child to shrink
-          }}
-        >
+        <div className="messages-container">
           {conversationsLoading ? (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "100%",
-                color: "#666",
-              }}
-            >
-              Loading chat history...
+            <div className="loading-container">
+              <span className="loading-spinner">Loading chat history...</span>
             </div>
           ) : (
             <div style={{ flex: 1, minHeight: 0 }}>
-              <div
-                style={{
-                  height: "100%",
-                  padding: "16px 24px",
-                  overflowY: "auto",
-                }}
-              >
+              <div className="messages-scroll-area">
                 <Flex gap="small" vertical>
                   {bubbleMessages.map((bubble) => (
                     <Bubble
@@ -258,19 +229,14 @@ const ChatPage: React.FC = () => {
         </div>
 
         {/* Input Bar - Sticky to bottom */}
-        <div
-          style={{
-            padding: "16px 24px",
-            borderTop: "1px solid #f0f0f0",
-            background: "#fff",
-            flexShrink: 0,
-          }}
-        >
+        <div className="chat-input-container">
           <Sender
             placeholder={
               conversationsLoading
                 ? "Loading conversations..."
-                : "Type your message here..."
+                : currentConversation
+                ? "Type your message here..."
+                : "Select a conversation to start chatting..."
             }
             value={inputValue}
             onChange={(text) => setInputValue(text)}
