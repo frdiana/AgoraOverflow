@@ -23,15 +23,14 @@ var conversationsContainer = db.AddContainer("conversations", "/id");
 var ollama = builder
     .AddOllama("ollama")
     .WithGPUSupport()
-    .WithDataVolume()
-    .WithOpenWebUI();
+    .WithDataVolume();
 
 var phi4 = ollama.AddModel("phi4-mini", "phi4-mini");
 
 
 var api = builder
     .AddProject<AgoraOverflow_Api>("agoraoverflow-api")
-    .WaitFor(cosmos)
+    .WaitFor(db)
     .WithReference(conversationsContainer)
     .WithReference(ollama)
     .WithReference(phi4);

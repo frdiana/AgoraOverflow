@@ -1,21 +1,17 @@
-import { Layout } from "antd";
-import { Outlet } from "react-router-dom";
-import Navigation from "./components/Navigation";
-import { DarkModeProvider } from "./contexts/DarkModeContext";
+import { Route, Routes } from "react-router-dom";
 
-const { Content } = Layout;
+import IndexPage from "@/pages/index";
+import AgentsPage from "@/pages/agents";
+import ChatPage from "@/pages/chat";
 
-const App = () => {
+function App() {
   return (
-    <DarkModeProvider>
-      <Layout style={{ minHeight: "100vh", background: "var(--bg-primary)" }}>
-        <Navigation />
-        <Content style={{ padding: "24px", background: "var(--bg-secondary)" }}>
-          <Outlet />
-        </Content>
-      </Layout>
-    </DarkModeProvider>
+    <Routes>
+      <Route element={<IndexPage />} path="/" />
+      <Route element={<AgentsPage />} path="/agents" />
+      <Route element={<ChatPage />} path="/chat" />
+    </Routes>
   );
-};
+}
 
 export default App;
