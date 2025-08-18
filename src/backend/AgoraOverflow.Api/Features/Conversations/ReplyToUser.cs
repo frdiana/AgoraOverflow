@@ -1,9 +1,11 @@
-﻿using AgoraOverflow.Api.Common;
+﻿using AgoraOverflow.AgentsOrchestrator;
+using AgoraOverflow.Api.Common;
 using AgoraOverflow.Domain.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.AI;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace AgoraOverflow.Api.Features.Chat;
 
@@ -17,47 +19,67 @@ public class ReplyToUser : IEndpoint
 
     private async static Task<Results<Ok<Response>, NotFound>> HandleRequest(
         [FromKeyedServices("conversations")] Container container,
-        [FromKeyedServices("phi4-mini")] IChatClient chatClient,
+        Kernel kernel,
+        AgentsOrchestratorManager agentsOrchestratorManager,
         Guid conversationId,
         Request request,
         CancellationToken cancellationToken
     )
     {
-        Conversation? conversation = await GetConversationById(container, conversationId);
-        if (conversation == null)
+        try
+        {
+            Conversation? conversation = await GetConversationById(container, conversationId);
+            if (conversation == null)
+            {
+                return TypedResults.NotFound();
+            }
+
+            conversation.Messages.Add(
+                new()
+                {
+                    Content = request.UserMessage,
+                    Id = Guid.NewGuid(),
+                    Sender = "User",
+                    Timestamp = DateTime.UtcNow,
+                }
+            );
+
+            var chat = kernel.GetRequiredService<IChatCompletionService>();
+
+
+
+
+
+
+
+            //var result = await kernel.InvokePromptAsync(request.UserMessage);
+
+            var rr = await agentsOrchestratorManager.AskAgentsAsync(request.UserMessage);
+
+            Response response = new(rr.ToString(), "phi4Agent");
+
+            conversation.Messages.Add(
+                new()
+                {
+                    Content = response.Reply,
+                    Id = Guid.NewGuid(),
+                    Sender = "Agent",
+                    Timestamp = DateTime.UtcNow,
+                }
+            );
+
+            await container.UpsertItemAsync(conversation, cancellationToken: cancellationToken);
+            return TypedResults.Ok(response);
+        }
+        catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
             return TypedResults.NotFound();
         }
-
-        conversation.Messages.Add(
-            new()
-            {
-                Content = request.UserMessage,
-                Id = Guid.NewGuid(),
-                Sender = "User",
-                Timestamp = DateTime.UtcNow,
-            }
-        );
-
-        var llmResponse = await chatClient.GetResponseAsync(
-            new ChatMessage(ChatRole.User, request.UserMessage),
-            options: new ChatOptions() { ModelId = "phi4-mini" }
-        );
-
-        Response response = new(llmResponse.Text, "phi4Agent");
-
-        conversation.Messages.Add(
-            new()
-            {
-                Content = response.Reply,
-                Id = Guid.NewGuid(),
-                Sender = "Agent",
-                Timestamp = DateTime.UtcNow,
-            }
-        );
-
-        await container.UpsertItemAsync(conversation, cancellationToken: cancellationToken);
-        return TypedResults.Ok(response);
+        catch (Exception ex)
+        {
+            // Log the exception (not shown here for brevity)
+            return TypedResults.NotFound();
+        }
     }
 
     private static async Task<Conversation?> GetConversationById(

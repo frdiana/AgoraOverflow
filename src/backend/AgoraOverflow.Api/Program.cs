@@ -1,9 +1,7 @@
 ﻿using AgoraOverflow.Api;
 using Serilog;
 
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .CreateLogger();
+Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
 try
 {
