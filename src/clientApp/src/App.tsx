@@ -1,18 +1,17 @@
-import { Layout } from "antd";
-import { Outlet } from "react-router-dom";
-import Navigation from "./components/Navigation";
+import { Route, Routes } from "react-router-dom";
 
-const { Content } = Layout;
+import IndexPage from "@/pages/index";
+import AgentsPage from "@/pages/agents";
+import ChatPage from "@/pages/chat";
 
-const App = () => {
+function App() {
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <Navigation />
-      <Content style={{ padding: "24px" }}>
-        <Outlet />
-      </Content>
-    </Layout>
+    <Routes>
+      <Route element={<IndexPage />} path="/" />
+      <Route element={<AgentsPage />} path="/agents" />
+      <Route element={<ChatPage />} path="/chat" />
+    </Routes>
   );
-};
+}
 
 export default App;

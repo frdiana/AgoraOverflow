@@ -1,113 +1,50 @@
-# React + TypeScript + Vite
+# Vite & HeroUI Template
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a template for creating applications using Vite and HeroUI (v2).
 
-## Routing
+[Try it on CodeSandbox](https://githubbox.com/frontio-ai/vite-template)
 
-The application uses React Router for client-side routing. Available routes:
+## Technologies Used
 
-- `/` - Home page
-- `/chat` - Chat interface
-- `/agents` - Agents management
-- `/settings` - Application settings
+- [Vite](https://vitejs.dev/guide/)
+- [HeroUI](https://heroui.com)
+- [Tailwind CSS](https://tailwindcss.com)
+- [Tailwind Variants](https://tailwind-variants.org)
+- [TypeScript](https://www.typescriptlang.org)
+- [Framer Motion](https://www.framer.com/motion)
 
-The routing is configured in `src/router/index.tsx` with a nested layout structure where the main `App` component serves as the layout wrapper for all pages.
+## How to Use
 
-## Environment Configuration
+To clone the project, run the following command:
 
-The application uses environment variables for configuration. Create a `.env` file in the root directory to configure the API base path:
-
-```env
-VITE_API_BASE_PATH=http://localhost:3000/api
+```bash
+git clone https://github.com/frontio-ai/vite-template.git
 ```
 
-Available environment files:
+### Install dependencies
 
-- `.env.development` - Development environment settings
-- `.env.production` - Production environment settings
-- `.env.local` - Local overrides (gitignored)
-- `.env.example` - Example configuration
+You can use one of them `npm`, `yarn`, `pnpm`, `bun`, Example using `npm`:
 
-## API Services
-
-The application includes a service layer for API communication:
-
-- `src/services/apiService.ts` - Base API service with common functionality
-- `src/services/chatService.ts` - Chat-related API endpoints
-- `src/services/index.ts` - Service exports
-
-All API calls automatically use the `VITE_API_BASE_PATH` environment variable for the base URL.
-
-### Chat API Endpoints
-
-The application integrates with the following chat API endpoints:
-
-- `GET /chat/history` - Retrieves chat conversation history
-- `POST /chat/start` - Starts a new chat conversation, returns `{ chatId: string }`
-- `POST /chat/{chatId}/ask` - Sends a message to a chat, expects `{ userMessage: string }`, returns `{ reply: string, fromAgent: string }`
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Run the development server
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
-
-export default tseslint.config([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```bash
+npm run dev
 ```
+
+### Setup pnpm (optional)
+
+If you are using `pnpm`, you need to add the following code to your `.npmrc` file:
+
+```bash
+public-hoist-pattern[]=*@heroui/*
+```
+
+After modifying the `.npmrc` file, you need to run `pnpm install` again to ensure that the dependencies are installed correctly.
+
+## License
+
+Licensed under the [MIT license](https://github.com/frontio-ai/vite-template/blob/main/LICENSE).
