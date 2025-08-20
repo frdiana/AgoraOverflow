@@ -8,6 +8,10 @@
   <Folder Name="/Infrastructure/">
     <Project Path="infrastructure/AgoraOverflow.Infrastructure/AgoraOverflow.Infrastructure.csproj" Id="5dc1c02b-1587-40f4-8a05-2a3e019bfde5" />
   </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".dockerignore" />
+    <File Path=".editorconfig" />
+  </Folder>
   <Project Path="AgoraOverflow.AgentsOrchestrator/AgoraOverflow.AgentsOrchestrator.csproj" />
   <Project Path="AgoraOverflow.AppHost/AgoraOverflow.AppHost.csproj" Id="18e9b84c-ad66-42ca-88f0-c9d332f1d488" />
   <Project Path="AgoraOverflow.ServiceDefaults/AgoraOverflow.ServiceDefaults.csproj" />

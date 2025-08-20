@@ -1,4 +1,7 @@
-﻿using AgoraOverflow.AgentsOrchestrator;
+// Copyright (c) 2025 Francesco Diana
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
+using AgoraOverflow.AgentsOrchestrator;
 using FluentValidation;
 using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
@@ -11,12 +14,12 @@ public static class ConfigureServices
 {
     public static void AddServices(this WebApplicationBuilder builder)
     {
-        //builder.AddKeyedAzureCosmosContainer("conversations");
-        builder.AddAzureChatCompletionsClient(connectionName: "foundry").AddChatClient("gpt-5-mini");
+        builder.AddKeyedAzureCosmosContainer("conversations");
+        builder.AddAzureChatCompletionsClient(connectionName: "foundry").AddChatClient("gpt-4o");
 
 
 
-        builder.AddOllamaApiClient("ollama", s => s.SelectedModel = "phi4-mini").AddChatClient();
+        //builder.AddOllamaApiClient("ollama", s => s.SelectedModel = "phi4-mini").AddChatClient();
         builder.Services.AddValidatorsFromAssemblyContaining<RequestValidator>();
         builder.Services.AddCors(options =>
         {

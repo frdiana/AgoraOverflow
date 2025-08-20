@@ -1,4 +1,7 @@
-﻿using System.Text.Json;
+// Copyright (c) 2025 Francesco Diana
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
+using System.Text.Json;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents.Orchestration.GroupChat;
 using Microsoft.SemanticKernel.ChatCompletion;

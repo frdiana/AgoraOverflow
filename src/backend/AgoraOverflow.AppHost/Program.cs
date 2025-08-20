@@ -1,4 +1,7 @@
-﻿using Projects;
+// Copyright (c) 2025 Francesco Diana
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
+using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
@@ -21,7 +24,6 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 
 
-#pragma warning disable ASPIRECOSMOSDB001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
 var cosmos = builder
     .AddAzureCosmosDB("cosmos-db")
@@ -33,28 +35,24 @@ var cosmos = builder
 var db = cosmos.AddCosmosDatabase("db");
 var conversationsContainer = db.AddContainer("conversations", "/id");
 
-#pragma warning restore ASPIRECOSMOSDB001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
 
 
 var ollama = builder.AddOllama("ollama").WithGPUSupport().WithDataVolume();
 var phi4 = ollama.AddModel("phi4-mini", "phi4-mini");
 
-var chatDeploymentName = "gpt-5-mini";
+var chatDeploymentName = "gpt-4o";
 
 // Add Azure AI Foundry project
 
 var foundry = builder.AddAzureAIFoundry("foundry");
 
-
 // Add specific model deployments
-var gpt5mini = foundry.AddDeployment(chatDeploymentName, chatDeploymentName, "2025-08-07", "OpenAI");
-
-
-
-
-
-
+var gpt5mini = foundry.AddDeployment(chatDeploymentName, chatDeploymentName, "2024-11-20", "OpenAI").WithProperties(deployment =>
+{
+    deployment.SkuName = "Standard";
+    deployment.SkuCapacity = 100;
+});
 
 var api = builder
     .AddProject<AgoraOverflow_Api>("agoraoverflow-api")

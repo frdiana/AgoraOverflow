@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.AI;
+// Copyright (c) 2025 Francesco Diana
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;

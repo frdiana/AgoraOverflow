@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
+// Copyright (c) 2025 Francesco Diana
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents.Orchestration;
 using Microsoft.SemanticKernel.Agents.Orchestration.GroupChat;
@@ -6,6 +9,7 @@ using Microsoft.SemanticKernel.Agents.Runtime.InProcess;
 using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace AgoraOverflow.AgentsOrchestrator;
+
 public class AgentsOrchestratorManager(ILogger<AgentsOrchestratorManager> logger, Kernel kernel, IAgentBuilder agentBuilder, OrchestrationMonitor orchestrationMonitor)
 {
     public async Task<string> AskAgentsAsync(string question)
@@ -17,7 +21,7 @@ public class AgentsOrchestratorManager(ILogger<AgentsOrchestratorManager> logger
                     question,
                     kernel.GetRequiredService<IChatCompletionService>())
                 {
-                    MaximumInvocationCount = 5
+                    MaximumInvocationCount = 3,
                 },
                 [.. agentBuilder.BuildAgents()])
             {
